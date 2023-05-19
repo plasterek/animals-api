@@ -5,13 +5,19 @@ import { IAnimal } from './models/animal.interface';
 
 @Injectable()
 export class AnimalService {
-  createAnimal(name: string, type: EAnimalTypes): IAnimal {
+  public createAnimal(name: string, type: EAnimalTypes): IAnimal {
     const id: string = newId();
     const animal: IAnimal = {
       id: id,
       name: name,
       type: type,
     };
+    return animal;
+  }
+
+  public updateAnimal(animal: IAnimal, name: string, type: EAnimalTypes) {
+    animal.name = name;
+    animal.type = type;
     return animal;
   }
 

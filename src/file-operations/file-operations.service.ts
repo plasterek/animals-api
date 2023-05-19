@@ -10,7 +10,7 @@ import { AnimalService } from 'src/animal/animal.service';
 export class FileOperationsService {
   constructor(private readonly animalService: AnimalService) {}
 
-  public async readSingleFile(fileAdress: string): Promise<AnimalDTO> {
+  public async readSingleFile(fileAdress: string): Promise<IAnimal> {
     try {
       if (fileAdress.length < 1) {
         throw new Error('You need to provide adress to the file!');
@@ -23,7 +23,7 @@ export class FileOperationsService {
         throw new Error('File is empty!');
       }
       try {
-        const parsedData: AnimalDTO = JSON.parse(data);
+        const parsedData: IAnimal = JSON.parse(data);
         return parsedData;
       } catch (err: any) {
         throw new Error('Invalid JSON file!');
@@ -33,7 +33,7 @@ export class FileOperationsService {
     }
   }
 
-  public async readAllFiles(directoryAdress: string): Promise<Array<AnimalDTO>> {
+  public async readAllFiles(directoryAdress: string): Promise<Array<IAnimal>> {
     try {
       if (directoryAdress.length < 1 || !existsSync(directoryAdress)) {
         throw new Error('Youd need to provide proper directory!');
@@ -42,9 +42,9 @@ export class FileOperationsService {
       if (allFiles.length < 1) {
         throw new Error(`Given directory: ${directoryAdress} - is empty!`);
       }
-      const arrayOfPromises: Promise<AnimalDTO>[] = allFiles.map(async (singleFile: string) => {
+      const arrayOfPromises: Promise<IAnimal>[] = allFiles.map(async (singleFile: string) => {
         const filePath: string = `${directoryAdress}/${singleFile}`;
-        const result: AnimalDTO = await this.readSingleFile(filePath);
+        const result: IAnimal = await this.readSingleFile(filePath);
         return result;
       });
       return Promise.all(arrayOfPromises);

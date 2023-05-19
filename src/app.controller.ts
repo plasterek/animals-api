@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Param, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, BadRequestException, Put } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FileOperationsService } from './file-operations/file-operations.service';
 import { AnimalDTO } from './file-operations/dtos/animal.dto';
@@ -31,6 +31,18 @@ export class AppController {
     try {
       const animal: AnimalDTO = await this.fileOperations.readSingleFile(`${this.filesDirectory}/${id}.json`);
       return animal;
+    } catch (err: any) {
+      throw new BadRequestException(err.message);
+    }
+  }
+
+  @Put('animal/:id')
+  async updateAnimal(@Param('id') id: string, @Body() animal: AnimalDTO) {
+    try {
+      const animalFromFile: IAnimal = await this.fileOperations.readSingleFile(`${this.filesDirectory}/${id}.json`);
+      const updatedAnimal: IAnimal = this.animalService.updateAnimal(animalFromFile, animal.name, animal.type);
+      this.fileOperations.writeSingleFile(this.filesDirectory, updatedAnimal);
+      return updatedAnimal;
     } catch (err: any) {
       throw new BadRequestException(err.message);
     }
