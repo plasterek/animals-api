@@ -1,15 +1,15 @@
-import { Body, Controller, Get, Post, Param, BadRequestException, Put } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, BadRequestException, Put, ParseArrayPipe } from '@nestjs/common';
 import { AppService } from './app.service';
-import { FileOperationsService } from './file-operations/file-operations.service';
-import { AnimalDTO } from './file-operations/dtos/animal.dto';
+import { FileOperationsService } from './animal/file-operations/file-operations.service';
+import { AnimalDTO } from './animal/file-operations/dtos/animal.dto';
 import { IAnimal } from './animal/models/animal.interface';
-import { EAnimalTypes } from './file-operations/enums/animal-types.enum';
+import { EAnimalTypes } from './animal/file-operations/enums/animal-types.enum';
 import { AnimalService } from './animal/animal.service';
+import { AnimalTypeValidationPipe } from './animal/validation/animal-type-validation.pipe';
 
 @Controller('animals')
 export class AppController {
   constructor(private readonly appService: AppService, private readonly fileOperations: FileOperationsService, private readonly animalService: AnimalService) {}
-  private readonly filesDirectory: string = './animals';
 
   @Get()
   getHello(): string {
@@ -17,89 +17,69 @@ export class AppController {
   }
 
   @Get('all')
-  async getAllAnimals(): Promise<AnimalDTO[]> {
+  async getAllAnimals(): Promise<IAnimal[]> {
     try {
-      const allAnimals: AnimalDTO[] = await this.fileOperations.readAllFiles(this.filesDirectory);
-      return allAnimals;
+      return await this.fileOperations.readAllFiles();
     } catch (err: any) {
       throw new BadRequestException(err.message);
     }
   }
 
   @Get('animal/:id')
-  async getOneAnimal(@Param('id') id: string): Promise<AnimalDTO> {
+  async getOneAnimal(@Param('id') id: string): Promise<IAnimal> {
     try {
-      const animal: AnimalDTO = await this.fileOperations.readSingleFile(`${this.filesDirectory}/${id}.json`);
-      return animal;
+      return await this.fileOperations.readSingleFile(id);
     } catch (err: any) {
       throw new BadRequestException(err.message);
     }
   }
 
   @Put('animal/:id')
-  async updateAnimal(@Param('id') id: string, @Body() animal: AnimalDTO) {
+  async updateAnimal(@Param('id') id: string, @Body() animalDTO: AnimalDTO): Promise<IAnimal> {
     try {
-      const animalFromFile: IAnimal = await this.fileOperations.readSingleFile(`${this.filesDirectory}/${id}.json`);
-      const updatedAnimal: IAnimal = this.animalService.updateAnimal(animalFromFile, animal.name, animal.type);
-      this.fileOperations.writeSingleFile(this.filesDirectory, updatedAnimal);
-      return updatedAnimal;
+      const animalFromFile: IAnimal = await this.fileOperations.readSingleFile(id);
+      const updatedAnimal: IAnimal = this.animalService.updateAnimal(animalFromFile, animalDTO.name, animalDTO.type);
+      return await this.fileOperations.writeSingleFile(updatedAnimal);
     } catch (err: any) {
       throw new BadRequestException(err.message);
     }
   }
 
   @Post('add')
-  addOneAnimal(@Body() animal: AnimalDTO): IAnimal {
+  async addOneAnimal(@Body() animalDTO: AnimalDTO): Promise<IAnimal> {
     try {
-      if (!animal.name || !animal.type || animal.name.length < 1 || animal.type.length < 1) {
-        throw new Error('You need to provide name and type of animal!');
-      }
-      if (!this.animalService.animalTypeValidation(animal.type)) {
-        throw new Error(`Type ${animal.type} is not valid! Please use one of available types!`);
-      }
-      const animalToWrite: IAnimal = this.animalService.createAnimal(animal.name, animal.type);
-      return this.fileOperations.writeSingleFile(this.filesDirectory, animalToWrite);
+      const animalToWrite: IAnimal = this.animalService.createAnimal(animalDTO.name, animalDTO.type);
+      return await this.fileOperations.writeSingleFile(animalToWrite);
     } catch (err: any) {
       throw new BadRequestException(err.message);
     }
   }
 
   @Post('add/animals')
-  async addAllAnimals(@Body() animalsArray: AnimalDTO[]) {
+  async addAllAnimals(@Body(new ParseArrayPipe({ items: AnimalDTO })) animalsArray: AnimalDTO[]): Promise<IAnimal[]> {
     try {
-      const resultArray: IAnimal[] = [];
       if (animalsArray.length < 1) {
         throw new Error('You need to provide proper animals array');
       }
-      for (const animal of animalsArray) {
-        if (!this.animalService.animalTypeValidation(animal.type)) {
-          throw new Error(`Type ${animal.type} is not valid! Please use one of available types!`);
-        }
-      }
-      for (const animal of animalsArray) {
-        const animalToWrite: IAnimal = this.animalService.createAnimal(animal.name, animal.type);
-        this.fileOperations.writeSingleFile(this.filesDirectory, animalToWrite);
-        resultArray.push(animalToWrite);
-      }
-      return resultArray;
+      return this.fileOperations.writeAllFiles(animalsArray);
     } catch (err: any) {
       throw new BadRequestException(err.message);
     }
   }
 
-  @Post('add/:type')
-  async addAnimalsWithType(@Param('type') type: string, @Body() arrayOfNames: { name: string }[]) {
+  @Post('add/animals/:type')
+  async addAnimalsWithType(@Param('type', AnimalTypeValidationPipe) EAnimalTypes: EAnimalTypes, @Body(new ParseArrayPipe()) arrayOfNames: { name: string }[]): Promise<IAnimal[]> {
     try {
       const resultArray: IAnimal[] = [];
       if (arrayOfNames.length < 1) {
         throw new Error('You need to provide proper names array!');
       }
-      if (!this.animalService.animalTypeValidation(type)) {
-        throw new Error(`Type ${type} is not valid! Please use one of available types!`);
-      }
       for (const animal of arrayOfNames) {
-        const animalToWrite: IAnimal = this.animalService.createAnimal(animal.name, type as EAnimalTypes);
-        this.fileOperations.writeSingleFile(this.filesDirectory, animalToWrite);
+        if (!animal.name || animal.name.length < 1) {
+          throw new Error('You need to provide proper animal name!');
+        }
+        const animalToWrite: IAnimal = this.animalService.createAnimal(animal.name, EAnimalTypes);
+        await this.fileOperations.writeSingleFile(animalToWrite);
         resultArray.push(animalToWrite);
       }
       return resultArray;
