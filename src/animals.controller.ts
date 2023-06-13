@@ -8,7 +8,7 @@ import { AnimalService } from './animal/animal.service';
 import { AnimalTypeValidationPipe } from './animal/validation/animal-type-validation.pipe';
 import { Response, response } from 'express';
 import { AnimalIdDTO } from './animal/dto/animal-id.dto';
-import { AnimalName } from './animal/dto/name-array.dto';
+import { AnimalNameDTO } from './animal/dto/animal-name.dto';
 import { FileOperationsExceptionFilter } from './animal/file-operations/exceptions/file-operations-exception-filter.exeption';
 
 @Controller('animals')
@@ -57,7 +57,7 @@ export class AnimalsController {
   @Post('add/animals/:type')
   async addAnimalsWithType(
     @Param('type', AnimalTypeValidationPipe) eAnimalTypes: EAnimalTypes,
-    @Body(new ParseArrayPipe({ items: AnimalName })) arrayOfNames: AnimalName[],
+    @Body(new ParseArrayPipe({ items: AnimalNameDTO })) arrayOfNames: AnimalNameDTO[],
     @Res() response: Response,
   ): Promise<void> {
     console.log(arrayOfNames);

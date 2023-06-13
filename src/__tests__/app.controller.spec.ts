@@ -3,6 +3,7 @@ import * as request from 'supertest';
 const makeRequest = request('http://localhost:3000');
 import { EAnimalTypes } from '../animal/file-operations/enums/animal-types.enum';
 import { AnimalDTO } from 'src/animal/file-operations/dtos/animal.dto';
+import { AnimalNameDTO } from 'src/animal/dto/animal-name.dto';
 
 describe('AppController', () => {
   beforeEach(() => {
@@ -126,7 +127,7 @@ describe('AppController', () => {
   describe('When trying to add new animals by calling SEND on animals/add/animals/type and everything goes well', () => {
     it('It should respond with 202 status', async () => {
       //given
-      const animal: { name: string } = { name: 'john' };
+      const animal: AnimalNameDTO = { name: 'john' };
       //when
       const response: request.Response = await makeRequest.post('/animals/add/animals/fish').send([animal, animal]);
       //then
