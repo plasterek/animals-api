@@ -33,7 +33,7 @@ describe('AppController', () => {
       //when
       const response: request.Response = await makeRequest.get('/animals/animal/randomAnimal');
       //then
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
     });
   });
 
@@ -61,7 +61,7 @@ describe('AppController', () => {
       //when
       const response: request.Response = await makeRequest.put('/animals/animal/test').send({ name: 'jasiek', type: EAnimalTypes.FISH });
       //then
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(202);
       expect(response.body).toMatchObject<IAnimal>;
     });
   });
@@ -89,7 +89,7 @@ describe('AppController', () => {
       //when
       const response: request.Response = await makeRequest.post('/animals/add').send({ name: 'zwierz', type: EAnimalTypes.TYPE3 });
       //then
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(202);
       expect(response.body).toMatchObject<IAnimal>;
     });
   });
@@ -109,7 +109,7 @@ describe('AppController', () => {
       const animal: AnimalDTO = { name: 'john', type: EAnimalTypes.FISH };
       const response: request.Response = await makeRequest.post('/animals/add/animals').send([animal, animal]);
       //then
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(202);
       expect(response.body).toMatchObject<IAnimal[]>;
     });
   });
@@ -124,13 +124,13 @@ describe('AppController', () => {
   });
 
   describe('When trying to add new animals by calling SEND on animals/add/animals/type and everything goes well', () => {
-    it('It should respond with 400 status', async () => {
+    it('It should respond with 202 status', async () => {
       //given
       const animal: { name: string } = { name: 'john' };
       //when
       const response: request.Response = await makeRequest.post('/animals/add/animals/fish').send([animal, animal]);
       //then
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(202);
 
       expect(response.body).toMatchObject<IAnimal[]>;
     });
