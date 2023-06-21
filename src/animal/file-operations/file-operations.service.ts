@@ -42,6 +42,8 @@ export class FileOperationsService {
       }
       return result;
     } catch (err: any) {
+      console.log(err);
+
       throw new FileOperationsException(err);
     }
   }

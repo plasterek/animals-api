@@ -60,8 +60,6 @@ export class AnimalsController {
     @Body(new ParseArrayPipe({ items: AnimalNameDTO })) arrayOfNames: AnimalNameDTO[],
     @Res() response: Response,
   ): Promise<void> {
-    console.log(arrayOfNames);
-
     for (const animal of arrayOfNames) {
       const animalToWrite: IAnimal = this.animalService.createAnimal(animal.name, eAnimalTypes);
       this.fileOperations.writeSingleFile(animalToWrite);

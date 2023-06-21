@@ -90,7 +90,7 @@ describe('FileOperationsService', () => {
     });
   });
 
-  describe.skip('When trying to read all files and everything goes well', () => {
+  describe('When trying to read all files and everything goes well', () => {
     it('It should return IAnimal Array', async () => {
       //given
       const animal: IAnimal = new IAnimal('name', EAnimalTypes.FISH, 'id');
